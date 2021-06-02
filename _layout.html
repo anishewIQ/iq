@@ -1,0 +1,218 @@
+{% extends "_basic.html" %}
+
+{% block content %}
+{# Table of content #}
+<div class="col-xs-2 menu-left">
+	<div class="col-xs-12 text-center menu-left-header">
+		<h3>IQ-Beat <span class="glyphicon glyphicon-heart"></span></h3>
+	</div>
+
+	<div class="col-xs-12 text-center" style="padding-bottom: 8px;">
+		{% if user.is_active %}
+		{% if user.is_staff %}
+		<span class="glyphicon glyphicon-lock"></span>
+		{% else %}
+		<span class="glyphicon glyphicon-user"></span>
+		{% endif %}
+		{{ user.username }}
+		{% else %}
+		Аноним
+		{% endif %}
+	</div>
+
+		{% if user.is_staff and DEBUG %}
+			<div class="col-xs-12 alert alert-danger">
+				<span class="glyphicon glyphicon-eye-close"></span> DebugMode
+			</div>
+		{% endif %}
+
+	<div class="col-xs-12 menu-left-content">
+		<ul>
+		{% if user.is_active %}
+			{% if user.is_staff %}
+				{# Staff elements #}
+				{% if request.user.is_superuser %}
+				<li><a class="link-white" href="/admin/">
+					<span class="glyphicon glyphicon-th-list"></span> DataBase
+				</a></li>
+				{% endif %}
+			{% else %}
+				{# Non-staff elements #}
+			{% endif %}
+				{# Common elements #}
+				<li><a class="link-white" href="/departments">
+					<span class="glyphicon glyphicon-equalizer"></span> Подразделения
+				</a></li>
+				<!-- <li><a class="link-white" href="/dashboard">
+					<span class="glyphicon glyphicon-dashboard"></span> Показатели Fs
+				</a></li> -->
+				<li><a class="link-white" href="/dashboardcl">
+					<span class="glyphicon glyphicon-dashboard"></span> Показатели
+				</a></li>
+				<li><a class="link-white" href="/realtime">
+					<span class="glyphicon glyphicon-dashboard"></span> Мониторинг
+				</a></li>
+				<li><a class="link-white" href="/acts">
+					<span class="glyphicon glyphicon-calendar"></span> Активность
+				</a></li>
+                <li><a class="link-white" href="/maps">
+					<span class="glyphicon glyphicon-map-marker"></span> Карты
+				</a></li>
+				<li><a class="link-white" href="/notifications">
+					<span class="glyphicon glyphicon-bell"></span> Уведомления
+				</a></li>
+
+				<li><a class="link-white" href="/exit">
+					<span class="glyphicon glyphicon-log-out"></span> Выход
+				</a></li>
+		{% else %}
+			{# Anonymous #}
+			<li><a class="link-white" href="/">
+				<span class="glyphicon glyphicon-log-in"></span> Вход
+			</a></li>
+		{% endif %}
+		</ul>
+	</div>
+</div>
+
+<script type="text/javascript">
+	const DOMAIN = window.location.href.split('?')[0];
+
+	function execute(link, names, params) {
+		let args = params ? params : {};
+		if (names) {
+			names.forEach(function (name) {
+				let value = prompt(`Enter value for argument ${name}`, '');
+				if (value !== null && value.length > 0) {
+					let key = '{' + name + '}';
+					if (link.indexOf(key) > 0) {
+						link = link.replace(key, value)
+					} else {
+						args[name] = value;
+					}
+				}
+			});
+		}
+		link = link + '?' + $.param( args );
+		if (confirm(`Are you sure go to ${link} ?`)) {
+			window.location.replace(link);
+		}
+	}
+
+	function getUrlParameter(sParam) {
+		let sPageURL = window.location.search.substring(1), sURLVariables = sPageURL.split('&'), sParameterName, i;
+		for (i = 0; i < sURLVariables.length; i++) {
+			sParameterName = sURLVariables[i].split('=');
+			if (sParameterName[0] === sParam) {
+				return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+			}
+		}
+	}
+
+	function getUrlArguments() {
+		let sURLVariables = window.location.search.substring(1).split('&'), sParameterName, i;
+		let res = {};
+		for (i = 0; i < sURLVariables.length; i++) {
+			sParameterName = sURLVariables[i].split('=');
+			res[sParameterName[0]] = sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+		}
+		return res;
+	}
+
+	{# https://docs.djangoproject.com/en/2.0/ref/csrf/ #}
+	{# https://stackoverflow.com/a/5107878/5308802 #}
+	$.ajaxSetup({
+		beforeSend: function(xhr, settings) {
+			function getCookie(name) {
+				var cookieValue = null;
+				if (document.cookie && document.cookie != '') {
+					var cookies = document.cookie.split(';');
+					for (var i = 0; i < cookies.length; i++) {
+						var cookie = jQuery.trim(cookies[i]);
+						if (cookie.substring(0, name.length + 1) == (name + '=')) {
+							cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+							break;
+						}
+					}
+				}
+				return cookieValue;
+			}
+			if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+				xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+			}
+		}
+	});
+</script>
+
+
+<script>
+	document.addEventListener('DOMContentLoaded', function() {
+	setTimeout(function() {
+		const firebase = globalThis['firebase'];
+		if (!firebase.messaging.isSupported()) {
+			console.log('FCM is not supported :(');
+			return;
+		}
+		const firebaseConfig = {
+			apiKey: "AIzaSyA6xvBAVKEsV08lLzqfewpV-OZnC0urNUA",
+			authDomain: "iq-beat-mob.firebaseapp.com",
+			databaseURL: "https://iq-beat-mob.firebaseio.com",
+			projectId: "iq-beat-mob",
+			storageBucket: "iq-beat-mob.appspot.com",
+			messagingSenderId: "779310653280",
+			appId: "1:779310653280:web:04c361bbe1e0a416ca8805",
+			measurementId: "G-PQBJ4T3C9S"
+		};
+		firebase.initializeApp(firebaseConfig);
+		firebase.analytics();
+
+		function sendTokenToServer(fcm_token) {
+			const data = {
+				'fcm_token': fcm_token,
+			};
+			$.ajax({
+				url: '/upload/fcm',
+				method: 'POST',
+				data: JSON.stringify(data),
+				contentType: 'application/json',
+				dataType: 'json',
+				crossDomain: true,
+
+			}).done(function (response, textStatus, jqXHR) {
+				console.info('Got Token response:', response);
+			}).fail(function (jqXHR, textStatus, errorThrown) {
+				console.error('Ошибка!', textStatus, errorThrown, jqXHR);
+			});
+		}
+		globalThis['acquireToken'] = function () {
+			messaging.getToken().then(function(fcm_token) {
+				console.log('Renew fcm_token: ', fcm_token);
+				sendTokenToServer(fcm_token);
+			});
+		}
+
+		const messaging = firebase.messaging();
+		navigator.serviceWorker.register('/static/fcm-sw.js')
+		.then((registration) => {
+			messaging.useServiceWorker(registration);
+			messaging.onTokenRefresh(acquireToken);
+		});
+		messaging.onMessage((payload) => {
+			console.log('Message received ', payload);
+		});
+	}, 800);
+	});
+</script>
+
+
+<!-- Page data -->
+<div class="col-xs-10 page-main">
+	<div id="blind">
+		<div class="blind-inner col-xs-12 text-center">
+			<div class="loader"></div>
+		</div>
+	</div>
+
+	{% block body_content %}{% endblock %}
+</div><!-- col-xs-10 page-main -->
+{% endblock %}
