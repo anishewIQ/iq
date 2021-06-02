@@ -1,0 +1,55 @@
+{% extends "_layout.html" %}
+
+{% block title %}Карты{% endblock %}
+
+{% block meta %}
+<script src="https://api-maps.yandex.ru/2.1/?apikey=fce8ef5b-5efa-4c63-824b-20e852dc117a&lang=ru_RU"
+        type="text/javascript"></script>
+<script src="maps.js" type="text/javascript"></script>
+
+	<style>
+        html, body, #mapdiv {
+            width: 100%; height: 100%; padding: 0; margin: 0;
+        }
+    </style>
+{% endblock %}
+
+{% block body_content %}
+<div class="col-xs-12 text-center page-main-header">
+	<h2 id="main-title">Карты</h2>
+</div>
+	<div class="col-xs-4 text-center">
+		<input type="text" id="dtpi" class="form-control">
+	</div>
+	<div class="col-xs-4 text-center">
+		<select class="form-control" id="select-dep">
+		</select>
+	</div>
+	<div class="col-xs-4 text-center">
+		<div class="btn-group">
+			<button type="button" class="btn btn-success" onclick="btnSelectEmp();">Загрузить</button>
+		</div>
+	</div>
+
+<div class="page-main-content">
+	<div class="col-xs-12" style="margin-top: 32px;">
+		<div id="mapdiv"></div>
+	</div>
+</div>
+
+<script type="text/javascript">{% for key, value in scripted.items %}
+	const {{ key }} = {{ value|safe }};{% endfor %}
+</script>
+<script>
+    window.loading = false;
+    const $blind = $('#blind');
+    const $dtpi = $('#dtpi');
+    $dtpi.datepicker({
+        autoclose: true,
+        format: "yyyy-mm-dd",
+    });
+
+    const $select_dep = $('#select-dep');
+</script>
+{% endblock %}
+\ No newline at end of file
