@@ -5,7 +5,6 @@
 {% block meta %}
 <script src="https://api-maps.yandex.ru/2.1/?apikey=fce8ef5b-5efa-4c63-824b-20e852dc117a&lang=ru_RU"
         type="text/javascript"></script>
-<script src="maps.js" type="text/javascript"></script>
 
 	<style>
         html, body, #mapdiv {
@@ -22,34 +21,86 @@
 		<input type="text" id="dtpi" class="form-control">
 	</div>
 	<div class="col-xs-4 text-center">
-		<select class="form-control" id="select-dep">
-		</select>
-	</div>
-	<div class="col-xs-4 text-center">
 		<div class="btn-group">
-			<button type="button" class="btn btn-success" onclick="btnSelectEmp();">Загрузить</button>
+			<button type="button" class="btn btn-success" id="toggle">Загрузить</button>
 		</div>
 	</div>
 
 <div class="page-main-content">
 	<div class="col-xs-12" style="margin-top: 32px;">
-		<div id="mapdiv"></div>
+		<div id="map" style="width: 600px; height: 400px"></div>
 	</div>
 </div>
 
 <script type="text/javascript">{% for key, value in scripted.items %}
 	const {{ key }} = {{ value|safe }};{% endfor %}
 </script>
-<script>
-    window.loading = false;
-    const $blind = $('#blind');
-    const $dtpi = $('#dtpi');
-    $dtpi.datepicker({
-        autoclose: true,
-        format: "yyyy-mm-dd",
-    });
+<script type="text/javascript">
+const $dtpi = $('#dtpi');
+$dtpi.datepicker({
+	autoclose: true,
+	format: "yyyy-mm-dd",
+});
 
-    const $select_dep = $('#select-dep');
+    // Функция ymaps.ready() будет вызвана, когда
+    // загрузятся все компоненты API, а также когда будет готово DOM-дерево.
+    ymaps.ready(init);
+
+
+function random(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+
+function init() {
+    var myMap;
+
+    $('#toggle').bind({
+        click: function () {
+            if (!myMap) {
+                // Создаем карту.
+                myMap = new ymaps.Map("map", {
+                    center: [55.72, 37.44],
+                    zoom: 10
+                }, {
+                    searchControlProvider: 'yandex#search'
+                });
+
+                {% for emp_id, coordinates in emp_geodata.items %}
+                    var min = {{ emp_id }} % 256;
+                    var colour = 'rgb(' + random(min, 255) + ',' +
+                        random(min, 255) + ',0)';
+                    var myPolyline = new ymaps.Polyline({{ coordinates }}, {
+                        // Описываем свойства геообъекта.
+                        // Содержимое балуна.
+                        balloonContent: "маршрут пользователя {{ emp_id }}"
+                    }, {
+                        // Задаем опции геообъекта.
+                        // Отключаем кнопку закрытия балуна.
+                        balloonCloseButton: false,
+                        // Цвет линии.
+                        strokeColor: colour,
+                        // Ширина линии.
+                        strokeWidth: 4,
+                        // Коэффициент прозрачности.
+                        strokeOpacity: 0.5
+                    });
+
+                    // Добавляем линии на карту.
+                    myMap.geoObjects
+                        .add(myPolyline);
+                {% endfor %}
+                $("#toggle").text('Скрыть карту');
+            } else {
+                myMap.destroy();// Деструктор карты
+                myMap = null;
+                $("#toggle").text('Загрузить');
+            }
+        }
+    });
+}
+
 </script>
 {% endblock %}
-\ No newline at end of file
