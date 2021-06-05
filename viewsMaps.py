@@ -20,5 +20,15 @@ class MapsView(View):
         p = Params()
         p.setup_struct(u)
         p.setup_perms(u)
+
+        emp_geodata = {}
+        date = datetime.now()
+        query = GeoEvent.objects.all().filter(actual_time__day=date.day, actual_time__month=date.month)
+        for ev in query:
+            if emp_geodata.get(ev.emp_id) is None:
+                emp_geodata[ev.emp_id] = []
+            emp_geodata[ev.emp_id].append([ev.lat, ev.lon])
+        p.params['emp_geodata'] = emp_geodata
+
         return render(request, 'maps.html', p.make())
 
